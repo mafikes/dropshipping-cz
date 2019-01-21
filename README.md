@@ -5,7 +5,7 @@ Library in php for communication with [Dropshipping.cz API](https://client.api.d
 Install
 ------------
 ```
-composer require mafikes/dropshippingCz
+composer require mafikes/dropshipping-cz
 ```
 
 Example
