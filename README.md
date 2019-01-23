@@ -28,15 +28,14 @@ $limit = 100;
 $offset = 0;
 do {
     $categories = $client->fetchProductsCategories(['eshop_id' => 'your shop id', 'limit' => $limit, 'offset' => $offset]);
-    if (count($categories->data) === 0) break;
-
+    
     foreach ($categories->data as $category) {
         // update, insert to DB
         var_dump($category);
     }
 
     $offset += 100;
-} while (true);
+} while (count($categories->data) === 0);
 ```
 
 #### Manufacturers

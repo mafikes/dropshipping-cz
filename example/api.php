@@ -6,17 +6,16 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$shopId = 0000; // your eshop id from dropshipping.cz
+$shopId = 8842; // your eshop id from dropshipping.cz
 
 // Client register
-$client = new \Mafikes\DropshippingCz\Client('');
+$client = new \Mafikes\DropshippingCz\Client('$1$Ow30RQqf$wkWH80qhVjJe5yL/LZ4i91');
 
 // Manufacturers
 $limit = 100;
 $offset = 0;
 do {
     $manufacturers = $client->fetchProductsManufacturers(['eshop_id' => $shopId, 'limit' => $limit, 'offset' => $offset]);
-    if (count($manufacturers->data) === 0) break;
 
     foreach ($manufacturers->data as $manufacturer) {
         // update, insert to DB
@@ -24,14 +23,13 @@ do {
     }
 
     $offset += 100;
-} while (true);
+} while (count($manufacturers->data) === 0);
 
 // Categories
 $limit = 100;
 $offset = 0;
 do {
     $categories = $client->fetchProductsCategories(['eshop_id' => $shopId, 'limit' => $limit, 'offset' => $offset]);
-    if (count($categories->data) === 0) break;
 
     foreach ($categories->data as $category) {
         // update, insert to DB
@@ -39,14 +37,14 @@ do {
     }
 
     $offset += 100;
-} while (true);
+} while (count($categories->data) === 0);
+
 
 // Products Parameters
 $limit = 100;
 $offset = 0;
 do {
     $productParameters = $client->fetchProductsParameters(['eshop_id' => $shopId, 'limit' => $limit, 'offset' => $offset]);
-    if (count($productParameters->data) === 0) break;
 
     foreach ($productParameters->data as $parameter) {
         // insert, update product
@@ -54,14 +52,13 @@ do {
     }
 
     $offset += 100;
-} while (true);
+} while (count($productParameters->data) === 0);
 
 // Products
 $limit = 100;
 $offset = 0;
 do {
     $products = $client->fetchProducts(['eshop_id' => $shopId, 'limit' => $limit, 'offset' => $offset]);
-    if (count($products->data) === 0) break;
 
     foreach ($products->data as $product) {
         // insert, update product
@@ -69,7 +66,7 @@ do {
     }
 
     $offset += 100;
-} while (true);
+} while (count($products->data) === 0);
 
 // Payments
 $payments = $client->fetchAllPayments(['eshop_id' => $shopId]);
@@ -90,7 +87,6 @@ foreach ($deliveries->data as $delivery) {
         $offset = 0;
         do {
             $deliveryPlaces = $client->fetchAllDeliveryPlaces(['delivery_id' => $delivery->id, 'limit' => $limit, 'offset' => $offset]);
-            if (count($deliveryPlaces->data) === 0) break;
 
             foreach ($deliveryPlaces->data as $place) {
                 // update insert delivery places
@@ -98,7 +94,7 @@ foreach ($deliveries->data as $delivery) {
             }
 
             $offset += 100;
-        } while (true);
+        } while (count($deliveryPlaces->data) === 0);
     }
 }
 
@@ -151,7 +147,6 @@ $limit = 100;
 $offset = 0;
 do {
     $orders = $client->fetchOrders(['eshop_id' => $shopId, 'limit' => $limit, 'offset' => $offset]); // you can add id order, sort, created_from, created_to
-    if (count($orders->data) === 0) break;
 
     foreach ($orders->data as $order) {
         // update, insert to DB
@@ -159,4 +154,4 @@ do {
     }
 
     $offset += 100;
-} while (true);
+} while (count($orders->data) === 0);
