@@ -35,7 +35,7 @@ do {
     }
 
     $offset += 100;
-} while (count($categories->data) === 0);
+} while (count($categories->data) !== 0);
 ```
 
 #### Manufacturers
