@@ -23,7 +23,7 @@ do {
     }
 
     $offset += 100;
-} while (count($manufacturers->data) === 0);
+} while (count($manufacturers->data) !== 0);
 
 // Categories
 $limit = 100;
@@ -37,7 +37,7 @@ do {
     }
 
     $offset += 100;
-} while (count($categories->data) === 0);
+} while (count($categories->data) !== 0);
 
 
 // Products Parameters
@@ -52,7 +52,7 @@ do {
     }
 
     $offset += 100;
-} while (count($productParameters->data) === 0);
+} while (count($productParameters->data) !== 0);
 
 // Products
 $limit = 100;
@@ -66,7 +66,7 @@ do {
     }
 
     $offset += 100;
-} while (count($products->data) === 0);
+} while (count($products->data) !== 0);
 
 // Payments
 $payments = $client->fetchAllPayments(['eshop_id' => $shopId]);
@@ -94,7 +94,7 @@ foreach ($deliveries->data as $delivery) {
             }
 
             $offset += 100;
-        } while (count($deliveryPlaces->data) === 0);
+        } while (count($deliveryPlaces->data) !== 0);
     }
 }
 
@@ -154,4 +154,4 @@ do {
     }
 
     $offset += 100;
-} while (count($orders->data) === 0);
+} while (count($orders->data) !== 0);
