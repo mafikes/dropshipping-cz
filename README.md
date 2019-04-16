@@ -104,11 +104,13 @@ $order = $client->postNewOrder([
     'delivery_place_id' => '', // 	ID odběrného místa (ze systému dropshipping.cz). Viz Doručovací metody - odběrné místa
     'delivery_place_ext_id' => null, // ID odběrného místa (z externí služby, například zasilkovna.cz).
     'delivery_price_vat' => '', // Cena doručovací metody s DPH
-    'basket' => [ // pole produktů v košíku
-        'id' => 1,  // ID aktivního produktu dodavatele. Nepovinné, pokud je uveden kód produktu
-        'code' => 'DS12345678', // Kód aktivního produktu dodavatele. Nepovinné, pokud je uvedeno ID produktu
-        'price_retail_vat' => 123.00, // Cena produktu s DPH
-        'quantity' => 3, // Počet kusů produktu
+    'basket' => [
+        [ // pole produktů v košíku
+          'id' => 1,  // ID aktivního produktu dodavatele. Nepovinné, pokud je uveden kód produktu
+          'code' => 'DS12345678', // Kód aktivního produktu dodavatele. Nepovinné, pokud je uvedeno ID produktu
+          'price_retail_vat' => 123.00, // Cena produktu s DPH
+          'quantity' => 3, // Počet kusů produktu
+        ]
     ],
     'test' => 1 // Testovací objednávka. V případě označení objednávky jako testovací ("test": "1"), nebude objednávka předána dodavateli.
 ]);
