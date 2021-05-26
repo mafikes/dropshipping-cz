@@ -30,6 +30,9 @@ class Client
     /** @var Resources\Deliveries */
     public $deliveries;
 
+    /** @var Resources\Profile */
+    public $profile;
+
     /**
      * DropshippingCz constructor.
      * @param $eshopId
@@ -51,6 +54,7 @@ class Client
 
         $this->products = new Resources\Products($this);
         $this->deliveries = new Resources\Deliveries($this);
+        $this->profile = new Resources\Profile($this);
     }
 
     /**
@@ -121,7 +125,7 @@ class Client
         $response = $this->client->request('GET', 'payments?' . http_build_query($parameters), $this->createHeader());
         return json_decode($response->getBody()->getContents());
     }
-    
+
     /**
      * Fetch all order statuses
      * @return mixed
