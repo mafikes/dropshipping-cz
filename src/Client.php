@@ -3,6 +3,7 @@
 namespace Mafikes\DropshippingCz;
 
 use GuzzleHttp;
+use Mafikes\DropshippingCz\Resources;
 
 /**
  * API class for portal Dropshipping.cz
@@ -17,18 +18,22 @@ class Client
     /** Token key*/
     private $token;
 
-    /** @var $client */
-    protected $client;
+    /*** @var $eshopId */
+    private $eshopId;
 
-    /** @var Products */
+    /** @var $client */
+    private $client;
+
+    /** @var Resources\Products */
     public $products;
 
     /**
      * DropshippingCz constructor.
+     * @param $eshopId
      * @param $token
      * @throws \Exception
      */
-    public function __construct($token)
+    public function __construct($eshopId, $token)
     {
         if (is_string($token)) {
             $this->token = $token;
@@ -39,8 +44,9 @@ class Client
         $this->client = new GuzzleHttp\Client([
             'base_uri' => self::API_URL
         ]);
+        $this->eshopId = $eshopId;
 
-        $this->products = new Products($this);
+        $this->products = new Resources\Products($this);
     }
 
     /**
@@ -61,23 +67,33 @@ class Client
      * @param array $parameters
      * @return mixed
      * @throws GuzzleHttp\Exception\GuzzleException
+     * @throws \Exception
      */
-    public function askServer(string $method, array $parameters = [])
+    public function askServer($method, array $parameters = array())
     {
         $uri = $method;
 
         // Add params if exist
-        if(count($parameters) > 0) $uri = $method. '?' . http_build_query($parameters);
+        if (count($parameters) > 0) $uri = $method . '?' . http_build_query($parameters);
 
         // Create request
-        $response = $this->client->request('GET', $uri, $this->createHeader());
+        try {
+            $response = $this->client->request('GET', $uri, $this->createHeader());
+        } catch(GuzzleHttp\Exception\RequestException $e) {
+            throw new \Exception($e);
+        }
 
         // Catch Error code from header
-        if(!in_array($response->getStatusCode(), array(200, 201)) || is_null($response->getStatusCode())) {
-            throw new \Exception('Request error. Body: ' . $response->getBody());
+        if (!in_array($response->getStatusCode(), array(200, 201)) || is_null($response->getStatusCode())) {
+            throw new \Exception('Exception: Request Error. Status: ' . $response->getStatusCode() . ' Body: ' . $response->getBody());
         }
 
         return json_decode($response->getBody()->getContents());
+    }
+
+    public function getEshopId()
+    {
+        return $this->eshopId;
     }
 
     /**
