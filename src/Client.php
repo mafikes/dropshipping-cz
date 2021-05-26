@@ -121,28 +121,7 @@ class Client
         $response = $this->client->request('GET', 'payments?' . http_build_query($parameters), $this->createHeader());
         return json_decode($response->getBody()->getContents());
     }
-
-    /**
-     * Fetch all deliveries
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchAllDeliveries(array $parameters)
-    {
-        $response = $this->client->request('GET', 'deliveries?' . http_build_query($parameters), $this->createHeader());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchAllDeliveryPlaces(array $parameters)
-    {
-        $response = $this->client->request('GET', 'delivery-places?' . http_build_query($parameters), $this->createHeader());
-        return json_decode($response->getBody()->getContents());
-    }
-
+    
     /**
      * Fetch all order statuses
      * @return mixed
