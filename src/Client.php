@@ -25,6 +25,9 @@ class Client
     /** @var Resources\Deliveries */
     public $deliveries;
 
+    /** @var Resources\Payments */
+    public $payments;
+
     /** @var Resources\Profile */
     public $profile;
 
@@ -52,6 +55,7 @@ class Client
 
         $this->products = new Resources\Products($this);
         $this->deliveries = new Resources\Deliveries($this);
+        $this->payments = new Resources\Payments($this);
         $this->profile = new Resources\Profile($this);
         $this->orders = new Resources\Orders($this);
     }
