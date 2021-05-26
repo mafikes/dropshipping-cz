@@ -15,13 +15,8 @@ class Client
 {
     const API_URL = 'https://client.api.dropshipping.cz/v1/';
 
-    /** Token key*/
     private $token;
-
-    /*** @var $eshopId */
     private $eshopId;
-
-    /** @var $client */
     private $client;
 
     /** @var Resources\Products */
@@ -32,6 +27,9 @@ class Client
 
     /** @var Resources\Profile */
     public $profile;
+
+    /** @var Resources\Orders */
+    public $orders;
 
     /**
      * DropshippingCz constructor.
@@ -55,6 +53,7 @@ class Client
         $this->products = new Resources\Products($this);
         $this->deliveries = new Resources\Deliveries($this);
         $this->profile = new Resources\Profile($this);
+        $this->orders = new Resources\Orders($this);
     }
 
     /**
@@ -100,6 +99,22 @@ class Client
     }
 
     /**
+     * @param $method
+     * @param $data
+     * @return mixed
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function post($method, $data)
+    {
+        $header = $this->createHeader();
+        $header['headers']['content-type'] = 'application/json';
+        $header['body'] = json_encode($data);
+
+        $response = $this->client->request('POST', $method, $header);
+        return json_decode($response->getBody()->getContents());
+    }
+
+    /**
      * @return string
      */
     public function getEshopId()
@@ -113,51 +128,5 @@ class Client
     public function fetchAllEshops()
     {
         return $this->askServer('eshops');
-    }
-
-    /**
-     * Fetch all payments
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchAllPayments(array $parameters)
-    {
-        $response = $this->client->request('GET', 'payments?' . http_build_query($parameters), $this->createHeader());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all order statuses
-     * @return mixed
-     */
-    public function fetchAllOrdersStatuses()
-    {
-        $response = $this->client->request('GET', 'order-statuses', $this->createHeader());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all orders
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchOrders(array $parameters)
-    {
-        $response = $this->client->request('GET', 'orders?' . http_build_query($parameters), $this->createHeader());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Post new order
-     * @return mixed / insterted orders information
-     */
-    public function postNewOrder($data)
-    {
-        $headers = $this->createHeader();
-        $headers['headers']['content-type'] = 'application/json';
-        $headers['body'] = json_encode($data);
-        $response = $this->client->request('POST', 'orders', $headers);
-
-        return json_decode($response->getBody()->getContents());
     }
 }
