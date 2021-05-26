@@ -35,16 +35,16 @@ class Client
      */
     public function __construct($eshopId, $token)
     {
-        if (is_string($token)) {
+        if (is_string($token) || is_string($eshopId)) {
             $this->token = $token;
+            $this->eshopId = $eshopId;
         } else {
-            throw new \Exception('API key is not specify right.');
+            throw new \Exception('Dropshipping Class is not specify right (eshopId or token is not string).');
         }
 
         $this->client = new GuzzleHttp\Client([
             'base_uri' => self::API_URL
         ]);
-        $this->eshopId = $eshopId;
 
         $this->products = new Resources\Products($this);
     }
@@ -91,6 +91,9 @@ class Client
         return json_decode($response->getBody()->getContents());
     }
 
+    /**
+     * @return string
+     */
     public function getEshopId()
     {
         return $this->eshopId;
