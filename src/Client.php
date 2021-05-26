@@ -27,6 +27,9 @@ class Client
     /** @var Resources\Products */
     public $products;
 
+    /** @var Resources\Deliveries */
+    public $deliveries;
+
     /**
      * DropshippingCz constructor.
      * @param $eshopId
@@ -47,6 +50,7 @@ class Client
         ]);
 
         $this->products = new Resources\Products($this);
+        $this->deliveries = new Resources\Deliveries($this);
     }
 
     /**
@@ -104,8 +108,7 @@ class Client
      */
     public function fetchAllEshops()
     {
-        $response = $this->client->request('GET', 'eshops', $this->createHeader());
-        return json_decode($response->getBody()->getContents());
+        return $this->askServer('eshops');
     }
 
     /**
