@@ -6,7 +6,7 @@ use Mafikes\DropshippingCz\Client;
 use Mafikes\DropshippingCz\Resources\Interfaces\ProfileInterface;
 
 /**
- * Class Products
+ * Class Profile
  * All functions related for products
  * @package Mafikes\DropshippingCz
  */
