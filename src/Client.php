@@ -34,13 +34,16 @@ class Client
     /** @var Resources\Orders */
     public $orders;
 
+    private $jsonResponse;
+
     /**
      * DropshippingCz constructor.
      * @param $eshopId
      * @param $token
+     * @param false $jsonResponse
      * @throws \Exception
      */
-    public function __construct($eshopId, $token)
+    public function __construct($eshopId, $token, $jsonResponse = false)
     {
         if (is_string($token) || is_string($eshopId)) {
             $this->token = $token;
@@ -53,6 +56,7 @@ class Client
             'base_uri' => self::API_URL
         ]);
 
+        $this->jsonResponse = $jsonResponse;
         $this->products = new Resources\Products($this);
         $this->deliveries = new Resources\Deliveries($this);
         $this->payments = new Resources\Payments($this);
@@ -99,7 +103,13 @@ class Client
             throw new \Exception('Exception: Request Error. Status: ' . $response->getStatusCode() . ' Body: ' . $response->getBody());
         }
 
-        return json_decode($response->getBody()->getContents());
+        $result = $response->getBody()->getContents();
+
+        if($this->jsonResponse) {
+            return $result;
+        } else {
+            return json_decode($result);
+        }
     }
 
     /**

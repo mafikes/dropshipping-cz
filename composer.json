@@ -1,6 +1,6 @@
 {
     "name": "mafikes/dropshipping-cz",
-    "description": "Dropshipping.cz - API client",
+    "description": "API client for Dropshipping.cz",
     "type": "library",
     "require": {
         "php": ">=5.4.0",
@@ -18,5 +18,8 @@
         "psr-4": {
             "Mafikes\\DropshippingCz\\": "src/"
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
     }
 }
