@@ -6,8 +6,8 @@ final class ClientTest extends TestCase
 {
     private $client;
 
-    const ESHOP_ID = "20723";
-    const API_TOKEN = '$1$9WU9ABuX$rILgxVrq7SXAM0v6BY1.C1';
+    const ESHOP_ID = "";
+    const API_TOKEN = '';
 
     public function __construct($name = null, $data = [], $dataName = '')
     {
@@ -43,11 +43,7 @@ final class ClientTest extends TestCase
 
     public function testProductsFetchAll()
     {
-        $data = $this->client->products->fetchAll();
-
-        var_dump($data);
-
-        $this->assertJson("{}");
+        $this->assertJson($this->client->products->fetchAll());
     }
 
     public function testProductsFetchXmlCollection()
@@ -82,7 +78,6 @@ final class ClientTest extends TestCase
 
     public function testOrdersFetchAllStatuses()
     {
-        var_dump($this->client->orders->fetchAllStatuses());
         $this->assertJson($this->client->orders->fetchAllStatuses());
     }
 
