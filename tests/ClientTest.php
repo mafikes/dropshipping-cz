@@ -6,8 +6,8 @@ final class ClientTest extends TestCase
 {
     private $client;
 
-    const ESHOP_ID = "";
-    const API_TOKEN = '';
+    const ESHOP_ID = "20723";
+    const API_TOKEN = '$1$PEWDC6TS$91TN.0P.uo9BuZOPCr8sU0';
 
     public function __construct($name = null, $data = [], $dataName = '')
     {
@@ -83,11 +83,11 @@ final class ClientTest extends TestCase
 
     public function testOrdersFetchAll()
     {
-        // All orders without filter
-        $this->assertJson($this->client->orders->fetchAll(10, 0));
+        $this->assertJson($this->client->orders->fetchAll());
+    }
 
-        // Orders with filter
-        $this->assertJson($this->client->orders->fetchAll(10, 0, array('created_from' => '1.1.2018')));
+    public function testOrdersFetchAllFiltered() {
+        $this->assertJson($this->client->orders->fetchAll(array('created_from' => '2021-01-01')));
     }
 
     public function testOrderProcess()

@@ -89,14 +89,13 @@ class Client
     }
 
     /**
-     * Send get HTTP
-     * @param string $method
+     * @param $uri
      * @param array $parameters
-     * @return mixed
+     * @param null $jsonResponse
+     * @return array|mixed|string
      * @throws GuzzleHttp\Exception\GuzzleException
-     * @throws \Exception
      */
-    public function askServer($uri, $parameters = array())
+    public function askServer($uri, $parameters = array(), $jsonResponse = null)
     {
         // Add params if exist
         if (count($parameters) > 0) $uri = $uri . '?' . http_build_query($parameters);
@@ -115,7 +114,7 @@ class Client
 
         $result = $response->getBody()->getContents();
 
-        if(!$this->jsonResponse) {
+        if(!$this->jsonResponse || !is_null($jsonResponse) && $jsonResponse === false) {
             $result = json_decode($result, true);
             $result = array_key_exists('data', $result) ? $result['data'] : [];
         }
@@ -179,11 +178,13 @@ class Client
             $parameters['limit'] = $limit;
             $parameters['offset'] = $offset;
 
-            $data = $this->askServer($uri, $parameters);
+            $data = $this->askServer($uri, $parameters, false);
             $resultData = array_merge($resultData, $data);
 
             $offset += $limit;
         } while(count($data) !== 0);
+
+        if($this->jsonResponse) $resultData = json_encode($resultData);
 
         return $resultData;
     }
