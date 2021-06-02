@@ -34,12 +34,14 @@ class Client
     /** @var Resources\Orders */
     public $orders;
 
+    /** @var $jsonResponse */
     private $jsonResponse;
 
     /**
-     * DropshippingCz constructor.
+     * Client constructor.
      * @param $eshopId
      * @param $token
+     * @param $timeout
      * @param false $jsonResponse
      * @throws \Exception
      */
@@ -53,7 +55,9 @@ class Client
         }
 
         $this->client = new GuzzleHttp\Client([
-            'base_uri' => self::API_URL
+            'base_uri' => self::API_URL,
+            'allow_redirects' => true,
+            'timeout' => 0,
         ]);
 
         $this->jsonResponse = $jsonResponse;
@@ -65,37 +69,43 @@ class Client
     }
 
     /**
-     * Create headers
-     * @return array
+     * @param array $bodyData
+     * @return array[]
      */
-    public function createHeader()
+    public function createHeader($bodyData = array())
     {
-        return [
-            'headers' => [
-                'Authorization' => $this->token
-            ]
-        ];
+        $header = array(
+            'headers' => array(
+                'Authorization' => $this->token,
+                'content-type' => 'application/json'
+            )
+        );
+
+        if(count($bodyData) > 0) {
+            $header['body'] = json_encode($bodyData);
+        }
+
+        return $header;
     }
 
     /**
+     * Send get HTTP
      * @param string $method
      * @param array $parameters
      * @return mixed
      * @throws GuzzleHttp\Exception\GuzzleException
      * @throws \Exception
      */
-    public function askServer($method, array $parameters = array())
+    public function askServer($uri, $parameters = array())
     {
-        $uri = $method;
-
         // Add params if exist
-        if (count($parameters) > 0) $uri = $method . '?' . http_build_query($parameters);
+        if (count($parameters) > 0) $uri = $uri . '?' . http_build_query($parameters);
 
         // Create request
         try {
             $response = $this->client->request('GET', $uri, $this->createHeader());
         } catch(GuzzleHttp\Exception\RequestException $e) {
-            throw new \Exception($e);
+            throw new \Exception($e->getResponse()->getBody());
         }
 
         // Catch Error code from header
@@ -105,27 +115,77 @@ class Client
 
         $result = $response->getBody()->getContents();
 
-        if($this->jsonResponse) {
-            return $result;
-        } else {
-            return json_decode($result);
+        if(!$this->jsonResponse) {
+            $result = json_decode($result, true);
+            $result = array_key_exists('data', $result) ? $result['data'] : [];
         }
+
+        return $result;
     }
 
     /**
+     * Send request POST, PATCH or PUT
      * @param $method
      * @param $data
      * @return mixed
      * @throws GuzzleHttp\Exception\GuzzleException
      */
-    public function post($method, $data)
+    public function request($method, $uri, $data = array())
     {
-        $header = $this->createHeader();
-        $header['headers']['content-type'] = 'application/json';
-        $header['body'] = json_encode($data);
+        $result = null;
 
-        $response = $this->client->request('POST', $method, $header);
-        return json_decode($response->getBody()->getContents());
+        // Create request
+        try {
+            $response = $this->client->request($method, $uri, $this->createHeader($data));
+            $result = $response->getBody()->getContents();
+
+            // Catch Error code from header
+            if (!in_array($response->getStatusCode(), array(200, 201)) || is_null($response->getStatusCode())) {
+                throw new \Exception('Exception: Request Error. Status: ' . $response->getStatusCode() . ' Body: ' . $response->getBody());
+            }
+
+        } catch(GuzzleHttp\Exception\RequestException $e) {
+            if ($e->getResponse()->getStatusCode() == '400') {
+                $result = $e->getResponse()->getBody()->getContents();
+            }
+        } catch (\Exception $e) {
+            throw new \Exception($e);
+        }
+
+
+        if(!$this->jsonResponse) {
+            $result = json_decode($result, true);
+            $result = array_key_exists('data', $result) ? $result['data'] : [];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Fetch all data with pagination
+     * @param $uri
+     * @param array $parameters
+     * @return array
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function askServerPagination($uri, $parameters = array())
+    {
+        $resultData = [];
+
+        $limit = 100;
+        $offset = 0;
+
+        do {
+            $parameters['limit'] = $limit;
+            $parameters['offset'] = $offset;
+
+            $data = $this->askServer($uri, $parameters);
+            $resultData = array_merge($resultData, $data);
+
+            $offset += $limit;
+        } while(count($data) !== 0);
+
+        return $resultData;
     }
 
     /**

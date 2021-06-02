@@ -37,60 +37,74 @@ class Orders implements OrdersInterface
         ));
     }
 
-    /**
-     * @param array $additionalParameters
-     *  serial_number
-     *  sort => Řazení záznámů. Směr řazení se určuje znakem "-" před názvem proměnné ("sort=created" = "created ASC"; "sort=-created" = "created DESC"). Defaultní řazení je "id ASC".
-     *  created_from
-     *  created_to
-     *  remote_id => ID objednávky z Vašeho systému
-     * @param $limit
-     * @param $offset
-     * @return mixed
+    /***
+     * @param $parameters
+     *      serial_number
+     *      sort => Řazení záznámů. Směr řazení se určuje znakem "-" před názvem proměnné ("sort=created" = "created ASC"; "sort=-created" = "created DESC"). Defaultní řazení je "id ASC".
+     *      created_from
+     *      created_to
+     *      remote_id => ID objednávky z Vašeho systému
+     * @return array|mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function fetchAll($additionalParameters = array(), $limit, $offset)
+    public function fetchAll($parameters = array())
     {
-        $parameters = array(
-            'eshop_id' => $this->client->getEshopId(),
-            'limit' => $limit,
-            'offset' => $offset
-        );
-
-        if(count($additionalParameters) > 0) {
-            $parameters = array_merge($additionalParameters, $parameters);
-        }
-
+        // Remove single search
         if(key_exists('id', $parameters)) unset($parameters['id']);
 
-        return $this->client->askServer('orders', $parameters);
+        return $this->client->askServerPagination('orders', $parameters);
     }
 
     /**
      * Create new order
-     * @param $orderData
-     * @param false $debug   Send as test order only
+     * @param $data
+     * @param bool $test
+     * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function create($orderData, $test = false)
+    public function create($data, $test = true)
     {
-        $orderData['test'] = $test;
-        return $this->client->post('orders', $orderData);
+        $data['eshop_id'] = $this->client->getEshopId();
+        $data['test'] = $test;
+
+        return $this->client->request('POST','orders', $data);
     }
 
+    /**
+     * Edit order
+     * @param $orderId
+     * @param $data
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function edit($orderId, $data)
     {
-        // TODO: Implement edit() method.
+        return $this->client->request('PUT','orders?id='.$orderId, $data);
     }
 
+    /**
+     * Change order status
+     * @param $orderId
+     * @param $statusId
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function editStatus($orderId, $statusId)
     {
-        // TODO: Implement editStatus() method.
+        return $this->client->request('PATCH','orders?id='.$orderId, array(
+            'status_id' => $statusId
+        ));
     }
 
-    public function delete($orderId)
+    /**
+     * Cancel order
+     * @param $orderId
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function cancel($orderId)
     {
-        // TODO: Implement delete() method.
+        return $this->client->request('DELETE','orders?id='.$orderId, array());
     }
 
     /**

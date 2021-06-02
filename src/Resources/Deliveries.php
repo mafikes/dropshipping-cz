@@ -48,17 +48,13 @@ class Deliveries implements DeliveriesInterface
     /**
      * All avalaible places for delivery Id
      * @param $deliveryId
-     * @param $limit
-     * @param $offset
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function fetchAllPlaces($deliveryId, $limit = 30, $offset = 0)
+    public function fetchAllPlaces($deliveryId)
     {
-        return $this->client->askServer('delivery-places', array(
+        return $this->client->askServerPagination('delivery-places', array(
             'delivery_id' => $deliveryId,
-            'limit' => $limit,
-            'offset' => $offset
         ));
     }
 }

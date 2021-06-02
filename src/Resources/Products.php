@@ -38,86 +38,117 @@ class Products implements ProductsInterface
     }
 
     /**
-     * Fetch all products from eshop
-     * @param int $limit
-     * @param int $offset
-     * @return mixed
+     * Fetch all products
+     * @param array $parameters
+     * @return array|mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function fetchAll($limit = 30, $offset = 0)
+    public function fetchAll($parameters = array())
     {
-        return $this->client->askServer('products', array(
-            'eshop_id' => $this->client->getEshopId(),
-            'limit' => $limit,
-            'offset' => $offset
-        ));
+        $data = [];
+
+        if(array_key_exists('limit', $parameters) && array_key_exists('offset', $parameters)) {
+            $data = $this->client->askServer('products', array(
+                'eshop_id' => $this->client->getEshopId(),
+                'limit' => $parameters['limit'],
+                'offset' => $parameters['offset']
+            ));
+        } else {
+            $data = $this->client->askServerPagination('products', array(
+                'eshop_id' => $this->client->getEshopId(),
+            ));
+        }
+
+        return $data;
     }
 
     /**
-     * @param array $productIds
+     * @param $productIds
      * @return mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function fetchInventory($productIds)
     {
-        return $this->client->askServer('products/inventory', array(
+        if(!is_array($productIds)) throw new \Exception('Product IDs is not array.');
+
+        return $this->client->request('POST','products/inventory', array(
             'ids' => $productIds
         ));
     }
 
     /**
      * Fetch all products categories
-     * @param null $limit => If it is null, returing all data
-     * @param int $offset
-     * @return mixed
+     * @param array $parameters
+     * @return array|mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function fetchCategories($limit = null, $offset = 0)
+    public function fetchCategories($parameters = array())
     {
-        $parameters = array(
-            'eshop_id' => $this->client->getEshopId()
-        );
+        $data = [];
 
-        if (!is_null($limit)) {
-            $parameters = array_merge(array(
-                'limit' => $limit,
-                'offset' => $offset
-            ), $parameters);
+        if(array_key_exists('limit', $parameters) && array_key_exists('offset', $parameters)) {
+            $data = $this->client->askServer('products/categories', array(
+                'eshop_id' => $this->client->getEshopId(),
+                'limit' => $parameters['limit'],
+                'offset' => $parameters['offset']
+            ));
+        } else {
+            $data = $this->client->askServerPagination('products/categories', array(
+                'eshop_id' => $this->client->getEshopId(),
+            ));
         }
 
-        return $this->client->askServer('products/categories', $parameters);
+        return $data;
     }
 
     /**
      * Fetch manufacturers
-     * @param int $limit
-     * @param int $offset
-     * @return mixed
+     * @param array $parameters
+     * @return array|mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function fetchManufacturers($limit = 30, $offset = 0)
+    public function fetchManufacturers($parameters = array())
     {
-        return $this->client->askServer('products/manufacturers', array(
-            'eshop_id' => $this->client->getEshopId(),
-            'limit' => $limit,
-            'offset' => $offset
-        ));
+        $data = [];
+
+        if(array_key_exists('limit', $parameters) && array_key_exists('offset', $parameters)) {
+            $data = $this->client->askServer('products/manufacturers', array(
+                'eshop_id' => $this->client->getEshopId(),
+                'limit' => $parameters['limit'],
+                'offset' => $parameters['offset']
+            ));
+        } else {
+            $data = $this->client->askServerPagination('products/manufacturers', array(
+                'eshop_id' => $this->client->getEshopId(),
+            ));
+        }
+
+        return $data;
     }
 
     /**
      * Fetch all products parameters
-     * @param int $limit
-     * @param int $offset
-     * @return mixed
+     * @param array $parameters
+     * @return array|mixed
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function fetchParameters($limit = 30, $offset = 0)
+    public function fetchParameters($parameters = array())
     {
-        return $this->client->askServer('products/parameters', array(
-            'eshop_id' => $this->client->getEshopId(),
-            'limit' => $limit,
-            'offset' => $offset
-        ));
+        $data = [];
+
+        if(array_key_exists('limit', $parameters) && array_key_exists('offset', $parameters)) {
+            $data = $this->client->askServer('products/parameters', array(
+                'eshop_id' => $this->client->getEshopId(),
+                'limit' => $parameters['limit'],
+                'offset' => $parameters['offset']
+            ));
+        } else {
+            $data = $this->client->askServerPagination('products/parameters', array(
+                'eshop_id' => $this->client->getEshopId(),
+            ));
+        }
+
+        return $data;
     }
 
     /**
