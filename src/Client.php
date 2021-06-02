@@ -3,173 +3,204 @@
 namespace Mafikes\DropshippingCz;
 
 use GuzzleHttp;
+use Mafikes\DropshippingCz\Resources;
 
 /**
  * API class for portal Dropshipping.cz
  * Documentation: https://client.api.dropshipping.cz/
+ * Github: https://github.com/mafikes/dropshipping-cz
  * Author: Martin Antoš, mafikes.cz
  */
 class Client
 {
-    /**
-     * Token key
-     * @var $token
-     */
-    private $token;
+    const API_URL = 'https://client.api.dropshipping.cz/v1/';
 
-    /** @var $client */
+    private $token;
+    private $eshopId;
     private $client;
 
+    /** @var Resources\Products */
+    public $products;
+
+    /** @var Resources\Deliveries */
+    public $deliveries;
+
+    /** @var Resources\Payments */
+    public $payments;
+
+    /** @var Resources\Profile */
+    public $profile;
+
+    /** @var Resources\Orders */
+    public $orders;
+
+    /** @var $jsonResponse */
+    private $jsonResponse;
+
     /**
-     * DropshippingCz constructor.
+     * Client constructor.
+     * @param $eshopId
      * @param $token
+     * @param $timeout
+     * @param false $jsonResponse
+     * @throws \Exception
      */
-    public function __construct($token)
+    public function __construct($eshopId, $token, $jsonResponse = false)
     {
-        $this->token = $token;
-        $this->createConnection();
-    }
+        if (is_string($token) || is_string($eshopId)) {
+            $this->token = $token;
+            $this->eshopId = $eshopId;
+        } else {
+            throw new \Exception('Dropshipping Class is not specify right (eshopId or token is not string).');
+        }
 
-    protected function createConnection()
-    {
         $this->client = new GuzzleHttp\Client([
-            'base_uri' => 'https://client.api.dropshipping.cz/v1/'
+            'base_uri' => self::API_URL,
+            'allow_redirects' => true,
+            'timeout' => 0,
         ]);
+
+        $this->jsonResponse = $jsonResponse;
+        $this->products = new Resources\Products($this);
+        $this->deliveries = new Resources\Deliveries($this);
+        $this->payments = new Resources\Payments($this);
+        $this->profile = new Resources\Profile($this);
+        $this->orders = new Resources\Orders($this);
     }
 
     /**
-     * Create headers
-     * @return array
+     * @param array $bodyData
+     * @return array[]
      */
-    protected function createHeaders()
+    public function createHeader($bodyData = array())
     {
-        $headers = [
-            'headers' => [
-                'Authorization' => $this->token
-            ]
-        ];
+        $header = array(
+            'headers' => array(
+                'Authorization' => $this->token,
+                'content-type' => 'application/json'
+            )
+        );
 
-        return $headers;
+        if(count($bodyData) > 0) {
+            $header['body'] = json_encode($bodyData);
+        }
+
+        return $header;
+    }
+
+    /**
+     * Send get HTTP
+     * @param string $method
+     * @param array $parameters
+     * @return mixed
+     * @throws GuzzleHttp\Exception\GuzzleException
+     * @throws \Exception
+     */
+    public function askServer($uri, $parameters = array())
+    {
+        // Add params if exist
+        if (count($parameters) > 0) $uri = $uri . '?' . http_build_query($parameters);
+
+        // Create request
+        try {
+            $response = $this->client->request('GET', $uri, $this->createHeader());
+        } catch(GuzzleHttp\Exception\RequestException $e) {
+            throw new \Exception($e->getResponse()->getBody());
+        }
+
+        // Catch Error code from header
+        if (!in_array($response->getStatusCode(), array(200, 201)) || is_null($response->getStatusCode())) {
+            throw new \Exception('Exception: Request Error. Status: ' . $response->getStatusCode() . ' Body: ' . $response->getBody());
+        }
+
+        $result = $response->getBody()->getContents();
+
+        if(!$this->jsonResponse) {
+            $result = json_decode($result, true);
+            $result = array_key_exists('data', $result) ? $result['data'] : [];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Send request POST, PATCH or PUT
+     * @param $method
+     * @param $data
+     * @return mixed
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function request($method, $uri, $data = array())
+    {
+        $result = null;
+
+        // Create request
+        try {
+            $response = $this->client->request($method, $uri, $this->createHeader($data));
+            $result = $response->getBody()->getContents();
+
+            // Catch Error code from header
+            if (!in_array($response->getStatusCode(), array(200, 201)) || is_null($response->getStatusCode())) {
+                throw new \Exception('Exception: Request Error. Status: ' . $response->getStatusCode() . ' Body: ' . $response->getBody());
+            }
+
+        } catch(GuzzleHttp\Exception\RequestException $e) {
+            if ($e->getResponse()->getStatusCode() == '400') {
+                $result = $e->getResponse()->getBody()->getContents();
+            }
+        } catch (\Exception $e) {
+            throw new \Exception($e);
+        }
+
+
+        if(!$this->jsonResponse) {
+            $result = json_decode($result, true);
+            $result = array_key_exists('data', $result) ? $result['data'] : [];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Fetch all data with pagination
+     * @param $uri
+     * @param array $parameters
+     * @return array
+     * @throws GuzzleHttp\Exception\GuzzleException
+     */
+    public function askServerPagination($uri, $parameters = array())
+    {
+        $resultData = [];
+
+        $limit = 100;
+        $offset = 0;
+
+        do {
+            $parameters['limit'] = $limit;
+            $parameters['offset'] = $offset;
+
+            $data = $this->askServer($uri, $parameters);
+            $resultData = array_merge($resultData, $data);
+
+            $offset += $limit;
+        } while(count($data) !== 0);
+
+        return $resultData;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEshopId()
+    {
+        return $this->eshopId;
     }
 
     /**
      * Fetch all your eshops in account
-     * @return mixed
      */
     public function fetchAllEshops()
     {
-        $response = $this->client->request('GET', 'eshops', $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all products from eshop
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchProducts(array $parameters)
-    {
-        $response = $this->client->request('GET', 'products?' . http_build_query($parameters), $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all products parameters
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchProductsParameters(array $parameters)
-    {
-        $response = $this->client->request('GET', 'products/parameters?' . http_build_query($parameters), $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all products categories
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchProductsCategories(array $parameters)
-    {
-        $response = $this->client->request('GET', 'products/categories?' . http_build_query($parameters), $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all products manufacturers
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchProductsManufacturers(array $parameters)
-    {
-        $response = $this->client->request('GET', 'products/manufacturers?' . http_build_query($parameters), $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all payments
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchAllPayments(array $parameters)
-    {
-        $response = $this->client->request('GET', 'payments?' . http_build_query($parameters), $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all deliveries
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchAllDeliveries(array $parameters)
-    {
-        $response = $this->client->request('GET', 'deliveries?' . http_build_query($parameters), $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchAllDeliveryPlaces(array $parameters)
-    {
-        $response = $this->client->request('GET', 'delivery-places?' . http_build_query($parameters), $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all order statuses
-     * @return mixed
-     */
-    public function fetchAllOrdersStatuses()
-    {
-        $response = $this->client->request('GET', 'order-statuses', $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Fetch all orders
-     * @param array $parameters
-     * @return mixed
-     */
-    public function fetchOrders(array $parameters)
-    {
-        $response = $this->client->request('GET', 'orders?' . http_build_query($parameters), $this->createHeaders());
-        return json_decode($response->getBody()->getContents());
-    }
-
-    /**
-     * Post new order
-     * @return mixed / insterted orders information
-     */
-    public function postNewOrder($data)
-    {
-        $headers = $this->createHeaders();
-        $headers['headers']['content-type'] = 'application/json';
-        $headers['body'] = json_encode($data);
-        $response = $this->client->request('POST', 'orders', $headers);
-
-        return json_decode($response->getBody()->getContents());
+        return $this->askServer('eshops');
     }
 }

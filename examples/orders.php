@@ -1,84 +1,15 @@
-Library mafikes/dropshipping-cz
-------------
-PHP Client for communication with [Dropshipping.cz API](https://client.api.dropshipping.cz/).
+<?php
+require_once __DIR__ . '/../vendor/autoload.php';
 
-Install
-------------
-```
-composer require mafikes/dropshipping-cz
-```
+use \Mafikes\DropshippingCz\Client;
 
-Example
-------------
-Examples could be found in examples folder.
+// Client Register
+$client = new Client('shopId', 'ApiToken');
 
-#### Create client
-```php
-$client = new Mafikes\DropshippingCz\Client('Your shop ID', 'Your API token');  
-```
-
-### How get data from API
-Functions in client are similar to original functions from API. 
-More [Dropshipping.cz API](https://client.api.dropshipping.cz/)
-
-#### Get my profile
-```php
-$client->profile->getMe();
-```
-
-#### Fetch all my avaialble eshops
-```php
-$client->fetchAllEshops();
-```
-
-#### Product, categories, inventory etc.
-```php
-// Fetch one detail product
-$client->products->fetch(1715227); // Return detail product data
-
-// Fetch products
-$client->products->fetchAll(array('limit' => 100, 'offset' => 0)); // Return with custom pagination
-$client->products->fetchAll();  // Return all manufacturers
-
-// Fetch product inventory
-$client->products->fetchInventory(array(1715227, 1715228));
-
-// Fetch product categories
-$client->products->fetchCategories(array('limit' => 100, 'offset' => 0)); // Return with custom pagination
-$client->products->fetchCategories(); // Return all manufacturers
-
-// Fetch product manufacturers
-$client->products->fetchManufacturers(array('limit' => 100, 'offset' => 0)); // Return with custom pagination
-$client->products->fetchManufacturers(); // Return all manufacturers
-
-// Fetch product parameters
-$client->products->fetchParameters(array('limit' => 100, 'offset' => 0)); // Return with custom pagination
-$client->products->fetchParameters(); // Return all manufacturers
-
-// Fetch XML Collection
-$client->products->fetchXmlCollection();
-```
-
-#### Payment 
-```php
-$client->payments->fetchAll(); // Return all payment methods
-$client->payments->fetchAll('partnerId'); // or get all by partnerId
-```
-
-#### Delivery
-```php
-// Fetch all deliveries methods
-$client->deliveries->fetchAll(); // Return all delivery methods
-$client->deliveries->fetchAll('partnerId'); // or get all by partnerId;
-$client->deliveries->fetchAllPlaces(10); // Fetch all delivery places by delivery methodId
-```
-
-#### Orders
-```php
 // Get all orders
 $client->orders->fetchAll();
 
-// Get all orders filtered by parameters
+// Search in orders by parameters
 /**
  *  eshop_id => ID obchodu (pro zobrazení objednávek konkrétního obchodu)
  *  serial_number => Číslo objednávky
@@ -153,5 +84,3 @@ $this->client->orders->create(array(
         )
     )
 ), true); // true/false if it testing order
-```
-
